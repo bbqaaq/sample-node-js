@@ -1,3 +1,4 @@
+//	console input
 const readline = require("readline")
 
 const rl = readline.createInterface({
@@ -16,12 +17,30 @@ function ask() {
 
 ask()
 
+//	mongo
+const mongoose = require("mongoose")
+
+mongoose.connect('mongodb://localhost:27017/sample-node-js')
+
+const TestSchema = new mongoose.Schema({
+	id: { type: Number, unique: true },
+	value: { type: Number }
+})
+const Test = mongoose.model('Test', TestSchema)
+
+//	https
 const http = require('http')
 
-const requestListener = function (req, res) {
-  res.writeHead(200)
-  res.end('Hello, World!')
-}
-
-const server = http.createServer(requestListener)
-server.listen(3000)
+const server = http.createServer((req, res) => {
+	if (req.url === '/favicon.ico') {
+		res.writeHead(200)
+		res.end('Hello, World!')
+	} 
+	else {
+		Test.findOneAndUpdate({ id: 1 }, { $inc: { value: 1 } }, { upsert: true }, (err, result) =>{
+			// console.log('result = ', result)
+			res.writeHead(200)
+			res.end(`DB value = ${result.value}`)
+		})
+    }	
+}).listen(3000)
